@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Clarity — Decision Intelligence Journal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0a0b0f; --surface: #111318; --surface2: #181c24;
+      --border: rgba(255,255,255,0.07); --border2: rgba(255,255,255,0.12);
+      --gold: #c9a84c; --gold-dim: rgba(201,168,76,0.12); --gold-glow: rgba(201,168,76,0.3);
+      --red: #e05a5a; --green: #5ab87a; --blue: #5a8fe0;
+      --text: #e8e4dc; --text-dim: rgba(232,228,220,0.55); --text-faint: rgba(232,228,220,0.25);
+    }
+    body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; }
+    .app { display: flex; min-height: 100vh; }
+
+    /* SIDEBAR */
+    .sidebar {
+      width: 220px; flex-shrink: 0; background: var(--surface);
+      border-right: 1px solid var(--border); display: flex; flex-direction: column;
+      padding: 28px 0; position: sticky; top: 0; height: 100vh; overflow-y: auto;
+    }
+    .logo { padding: 0 22px 28px; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
+    .logo-mark { font-family: 'Playfair Display', serif; font-size: 20px; color: var(--gold); }
+    .logo-sub { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--text-faint); letter-spacing: 0.18em; text-transform: uppercase; margin-top: 3px; }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px; padding: 10px 22px;
+      cursor: pointer; font-size: 13px; color: var(--text-dim);
+      transition: all 0.15s; border-left: 2px solid transparent;
+    }
+    .nav-item:hover { color: var(--text); background: rgba(255,255,255,0.03); }
+    .nav-item.active { color: var(--gold); border-left-color: var(--gold); background: var(--gold-dim); }
+    .nav-icon { font-size: 14px; width: 18px; text-align: center; }
+    .sidebar-label { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-faint); padding: 18px 22px 6px; }
+    .sidebar-stat { display: flex; justify-content: space-between; padding: 3px 22px; font-size: 11px; color: var(--text-faint); }
+
+    /* MAIN */
+    .main { flex: 1; padding: 40px 48px; max-width: 860px; }
+    .page-title { font-family: 'Playfair Display', serif; font-size: 30px; font-weight: 600; margin-bottom: 5px; }
+    .page-sub { color: var(--text-dim); font-size: 14px; margin-bottom: 32px; font-weight: 300; }
+
+    /* SETUP BANNER */
+    .setup-banner { background: rgba(201,168,76,0.08); border: 1px solid rgba(201,168,76,0.2); border-radius: 10px; padding: 18px 20px; margin-bottom: 24px; }
+    .setup-title { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gold); margin-bottom: 8px; }
+    .setup-text { font-size: 13px; color: var(--text-dim); line-height: 1.6; }
+    .setup-input { display: flex; gap: 10px; margin-top: 12px; }
+    .setup-input input { flex: 1; background: var(--surface2); border: 1px solid var(--border2); color: var(--text); border-radius: 7px; padding: 9px 13px; font-family: 'DM Mono', monospace; font-size: 12px; outline: none; }
+    .setup-input input:focus { border-color: var(--gold); }
+
+    /* FORM */
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 26px; margin-bottom: 16px; }
+    .card-gold { border-color: rgba(201,168,76,0.2); }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .form-full { grid-column: 1 / -1; }
+    .field { display: flex; flex-direction: column; gap: 5px; }
+    .field label { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--text-faint); }
+    .field input, .field textarea, .field select {
+      background: var(--surface2); border: 1px solid var(--border2); color: var(--text);
+      border-radius: 8px; padding: 10px 13px; font-family: 'DM Sans', sans-serif;
+      font-size: 13px; outline: none; transition: border-color 0.15s; resize: vertical;
+    }
+    .field input:focus, .field textarea:focus, .field select:focus { border-color: var(--gold); }
+    .field select option { background: #181c24; }
+
+    /* SLIDER */
+    .slider-wrap { display: flex; align-items: center; gap: 12px; }
+    .slider-wrap input[type=range] { flex: 1; -webkit-appearance: none; height: 4px; background: var(--border2); border-radius: 2px; border: none; padding: 0; }
+    .slider-wrap input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--gold); cursor: pointer; }
+    .slider-val { font-family: 'DM Mono', monospace; font-size: 14px; color: var(--gold); width: 20px; text-align: center; }
+
+    /* EMOTION PILLS */
+    .emotion-grid { display: flex; flex-wrap: wrap; gap: 7px; }
+    .emotion-pill { padding: 5px 13px; border-radius: 20px; border: 1px solid var(--border2); font-size: 12px; cursor: pointer; transition: all 0.15s; color: var(--text-dim); background: transparent; }
+    .emotion-pill:hover { border-color: var(--gold); color: var(--gold); }
+    .emotion-pill.selected { background: var(--gold-dim); border-color: var(--gold); color: var(--gold); }
+
+    /* BUTTONS */
+    .btn { padding: 10px 20px; border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.15s; border: none; display: inline-flex; align-items: center; gap: 8px; }
+    .btn-gold { background: var(--gold); color: #0a0b0f; }
+    .btn-gold:hover { background: #d4b55e; transform: translateY(-1px); box-shadow: 0 4px 14px var(--gold-glow); }
+    .btn-ghost { background: transparent; color: var(--text-dim); border: 1px solid var(--border2); }
+    .btn-ghost:hover { color: var(--text); background: rgba(255,255,255,0.04); }
+    .btn-danger { background: rgba(224,90,90,0.1); color: var(--red); border: 1px solid rgba(224,90,90,0.2); }
+    .btn-danger:hover { background: rgba(224,90,90,0.2); }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
+    .btn-row { display: flex; gap: 10px; margin-top: 22px; align-items: center; }
+
+    /* DECISION CARDS */
+    .decision-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; margin-bottom: 10px; cursor: pointer; transition: all 0.15s; }
+    .decision-card:hover { border-color: var(--border2); }
+    .decision-card.expanded { border-color: rgba(201,168,76,0.2); }
+    .dc-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+    .dc-title { font-family: 'Playfair Display', serif; font-size: 15px; font-weight: 600; }
+    .dc-meta { display: flex; gap: 8px; align-items: center; margin-top: 5px; flex-wrap: wrap; }
+    .dc-date { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text-faint); }
+    .dc-tag { font-size: 11px; color: var(--text-dim); background: var(--surface2); padding: 2px 9px; border-radius: 10px; }
+    .outcome-badge { padding: 3px 10px; border-radius: 10px; font-size: 11px; font-weight: 500; white-space: nowrap; }
+    .outcome-good { background: rgba(90,184,122,0.15); color: var(--green); }
+    .outcome-bad { background: rgba(224,90,90,0.15); color: var(--red); }
+    .outcome-neutral { background: rgba(90,143,224,0.15); color: var(--blue); }
+    .outcome-pending { background: rgba(255,255,255,0.06); color: var(--text-faint); }
+    .dc-body { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
+    .dc-section { margin-bottom: 12px; }
+    .dc-section-label { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--text-faint); margin-bottom: 3px; }
+    .dc-section-text { font-size: 13px; color: var(--text-dim); line-height: 1.6; }
+    .conf-bar { height: 3px; background: var(--border2); border-radius: 2px; margin-top: 6px; }
+    .conf-fill { height: 100%; border-radius: 2px; background: var(--gold); }
+
+    /* OUTCOME FORM */
+    .outcome-form { background: var(--surface2); border-radius: 8px; padding: 14px 16px; margin-top: 12px; }
+    .outcome-form-title { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gold); margin-bottom: 12px; }
+    .outcome-btns { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 11px; }
+    .o-btn { padding: 6px 14px; border-radius: 7px; font-size: 12px; cursor: pointer; border: 1px solid; transition: all 0.15s; }
+    .o-good { border-color: rgba(90,184,122,0.3); color: var(--green); background: rgba(90,184,122,0.06); }
+    .o-good.sel { background: rgba(90,184,122,0.2); }
+    .o-bad { border-color: rgba(224,90,90,0.3); color: var(--red); background: rgba(224,90,90,0.06); }
+    .o-bad.sel { background: rgba(224,90,90,0.2); }
+    .o-neutral { border-color: rgba(90,143,224,0.3); color: var(--blue); background: rgba(90,143,224,0.06); }
+    .o-neutral.sel { background: rgba(90,143,224,0.2); }
+
+    /* STATS */
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
+    .stat-box { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; text-align: center; }
+    .stat-num { font-family: 'Playfair Display', serif; font-size: 30px; color: var(--gold); }
+    .stat-label { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.13em; text-transform: uppercase; color: var(--text-faint); margin-top: 3px; }
+
+    /* AI */
+    .spinner { width: 18px; height: 18px; border: 2px solid var(--border2); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.8s linear infinite; display: inline-block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .analysis-intro { font-size: 13px; color: var(--text-dim); line-height: 1.7; margin-bottom: 18px; padding: 16px 18px; background: var(--surface2); border-radius: 10px; border-left: 3px solid var(--gold); }
+    .bias-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; margin-bottom: 12px; }
+    .bias-name { font-family: 'Playfair Display', serif; font-size: 16px; color: var(--gold); margin-bottom: 5px; }
+    .bias-sev { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+    .sev-label { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-faint); }
+    .dots { display: flex; gap: 4px; }
+    .dot { width: 7px; height: 7px; border-radius: 50%; }
+    .dot-on { background: var(--gold); }
+    .dot-off { background: var(--border2); }
+    .bias-desc { font-size: 13px; color: var(--text-dim); line-height: 1.65; }
+    .bias-tip { margin-top: 10px; padding: 10px 13px; background: var(--gold-dim); border-radius: 6px; border-left: 2px solid var(--gold); font-size: 12px; color: var(--text-dim); line-height: 1.6; }
+    .bias-tip-label { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.1em; color: var(--gold); text-transform: uppercase; margin-bottom: 3px; }
+    .strength-row { display: flex; gap: 9px; margin-bottom: 7px; font-size: 13px; color: var(--text-dim); }
+
+    /* EMPTY */
+    .empty { text-align: center; padding: 60px 20px; }
+    .empty-icon { font-size: 36px; margin-bottom: 12px; }
+    .empty-title { font-family: 'Playfair Display', serif; font-size: 19px; color: var(--text-dim); margin-bottom: 7px; }
+    .empty-text { font-size: 13px; color: var(--text-faint); line-height: 1.6; max-width: 260px; margin: 0 auto; }
+
+    @media (max-width: 700px) {
+      .sidebar { display: none; }
+      .main { padding: 22px 18px; }
+      .form-grid { grid-template-columns: 1fr; }
+      .stats-grid { grid-template-columns: repeat(2,1fr); }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="logo">
+      <div class="logo-mark">Clarity</div>
+      <div class="logo-sub">Decision Intelligence</div>
+    </div>
+    <div id="nav"></div>
+    <div id="sidebar-stats"></div>
+  </aside>
+  <main class="main" id="main"></main>
+</div>
+
+<script>
+// ─── CONFIG ───────────────────────────────────────────────────────────────────
+// Paste your FREE Google Gemini API key below between the quotes
+// Get one free (no credit card) at: https://aistudio.google.com/app/apikey
+const GEMINI_API_KEY = "AIzaSyA0LTSYUzbibHFebTKJDP0qUpWCkAZeNXw";
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let page = "log";
+let decisions = JSON.parse(localStorage.getItem("clarity_decisions") || "[]");
+let expanded = null;
+let outcomeEdits = {};
+let analysis = JSON.parse(localStorage.getItem("clarity_analysis") || "null");
+
+// ─── HELPERS ──────────────────────────────────────────────────────────────────
+const save = () => localStorage.setItem("clarity_decisions", JSON.stringify(decisions));
+const fmtDate = iso => new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+const $ = id => document.getElementById(id);
+const EMOTIONS = ["Anxious","Confident","Pressured","Excited","Reluctant","Neutral","Desperate","Hopeful","Fearful","Overwhelmed"];
+const CATS = ["Career","Finance","Relationships","Health","Business","Personal Growth","Major Purchase","Other"];
+
+function outcomeBadge(o) {
+  if (!o) return `<span class="outcome-badge outcome-pending">Pending</span>`;
+  const map = { good: ["outcome-good","✓ Good"], bad: ["outcome-bad","✗ Poor"], neutral: ["outcome-neutral","~ Neutral"] };
+  const [cls, label] = map[o] || map.neutral;
+  return `<span class="outcome-badge ${cls}">${label}</span>`;
+}
+
+// ─── NAV ──────────────────────────────────────────────────────────────────────
+function renderNav() {
+  const pages = [
+    { id:"log", icon:"✦", label:"Log Decision" },
+    { id:"journal", icon:"◈", label:"Journal" },
+    { id:"insights", icon:"◎", label:"AI Insights" }
+  ];
+  $("nav").innerHTML = pages.map(p => `
+    <div class="nav-item ${page===p.id?"active":""}" onclick="goTo('${p.id}')">
+      <span class="nav-icon">${p.icon}</span> ${p.label}
+    </div>`).join("");
+
+  const good = decisions.filter(d=>d.outcome==="good").length;
+  const bad = decisions.filter(d=>d.outcome==="bad").length;
+  const pending = decisions.filter(d=>!d.outcome).length;
+  $("sidebar-stats").innerHTML = decisions.length ? `
+    <div class="sidebar-label">Overview</div>
+    <div class="sidebar-stat"><span>Decisions</span><span style="color:var(--text-dim)">${decisions.length}</span></div>
+    <div class="sidebar-stat"><span>Good outcomes</span><span style="color:var(--green)">${good}</span></div>
+    <div class="sidebar-stat"><span>Poor outcomes</span><span style="color:var(--red)">${bad}</span></div>
+    <div class="sidebar-stat"><span>Pending</span><span style="color:var(--text-dim)">${pending}</span></div>
+  ` : "";
+}
+
+function goTo(p) { page = p; render(); }
+
+// ─── RENDER ───────────────────────────────────────────────────────────────────
+function render() {
+  renderNav();
+  if (page === "log") renderLog();
+  else if (page === "journal") renderJournal();
+  else if (page === "insights") renderInsights();
+}
+
+// ─── LOG PAGE ─────────────────────────────────────────────────────────────────
+let form = { title:"", context:"", options:"", chosen:"", reason:"", emotion:"", confidence:5, category:"Career", stakes:"" };
+
+function renderLog() {
+  const apiWarning = !GEMINI_API_KEY ? `
+    <div class="setup-banner">
+      <div class="setup-title">⚠ API Key Required for AI Insights</div>
+      <div class="setup-text">You can log decisions now without an API key. To unlock AI cognitive bias analysis, add your free Google Gemini API key in the <code style="font-family:'DM Mono',monospace;font-size:11px;color:var(--gold)">index.html</code> file on line 1 where it says <code style="font-family:'DM Mono',monospace;font-size:11px;color:var(--gold)">const GEMINI_API_KEY = ""</code>.<br><br>Get a 100% free key (no credit card) at <strong>aistudio.google.com/app/apikey</strong></div>
+    </div>` : "";
+
+  $("main").innerHTML = `
+    <div class="page-title">Log a Decision</div>
+    <div class="page-sub">Capture this moment before hindsight bias sets in.</div>
+    ${apiWarning}
+    <div class="card card-gold">
+      <div class="form-grid">
+        <div class="field form-full">
+          <label>Decision Title *</label>
+          <input id="f-title" placeholder="e.g. Accepting the job offer at Acme Corp" value="${esc(form.title)}" oninput="form.title=this.value" />
+        </div>
+        <div class="field">
+          <label>Category</label>
+          <select id="f-cat" onchange="form.category=this.value">
+            ${CATS.map(c=>`<option ${form.category===c?"selected":""}>${c}</option>`).join("")}
+          </select>
+        </div>
+        <div class="field">
+          <label>What's at stake?</label>
+          <input id="f-stakes" placeholder="e.g. $50k salary, career direction" value="${esc(form.stakes)}" oninput="form.stakes=this.value" />
+        </div>
+        <div class="field form-full">
+          <label>Context & Background *</label>
+          <textarea rows="3" placeholder="What's the situation? What pressures exist?" oninput="form.context=this.value">${esc(form.context)}</textarea>
+        </div>
+        <div class="field form-full">
+          <label>Options You Considered</label>
+          <textarea rows="2" placeholder="List all alternatives, even ones you dismissed quickly..." oninput="form.options=this.value">${esc(form.options)}</textarea>
+        </div>
+        <div class="field form-full">
+          <label>The Choice You're Making</label>
+          <input placeholder="State your actual decision clearly" value="${esc(form.chosen)}" oninput="form.chosen=this.value" />
+        </div>
+        <div class="field form-full">
+          <label>Your Reasoning</label>
+          <textarea rows="2" placeholder="Why this choice? What logic or evidence supports it?" oninput="form.reason=this.value">${esc(form.reason)}</textarea>
+        </div>
+        <div class="field form-full">
+          <label>Your Emotional State</label>
+          <div class="emotion-grid">
+            ${EMOTIONS.map(e=>`<button class="emotion-pill ${form.emotion===e?"selected":""}" onclick="toggleEmotion('${e}')">${e}</button>`).join("")}
+          </div>
+        </div>
+        <div class="field form-full">
+          <label>Confidence Level — <span id="conf-val">${form.confidence}</span>/10</label>
+          <div class="slider-wrap">
+            <input type="range" min="1" max="10" value="${form.confidence}" oninput="form.confidence=+this.value; $('conf-val').textContent=this.value" />
+          </div>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-gold" onclick="submitDecision()">✦ Record Decision</button>
+        <span style="font-size:12px;color:var(--text-faint)">Saved to your browser</span>
+      </div>
+    </div>`;
+}
+
+function esc(s) { return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+
+function toggleEmotion(e) {
+  form.emotion = form.emotion === e ? "" : e;
+  renderLog();
+}
+
+function submitDecision() {
+  if (!form.title.trim() || !form.context.trim()) {
+    alert("Please fill in at least a title and context.");
+    return;
+  }
+  const entry = { ...form, id: Date.now().toString(), date: new Date().toISOString(), outcome: null, outcomeNotes: "" };
+  decisions.unshift(entry);
+  save();
+  form = { title:"", context:"", options:"", chosen:"", reason:"", emotion:"", confidence:5, category:"Career", stakes:"" };
+  page = "journal";
+  render();
+}
+
+// ─── JOURNAL PAGE ─────────────────────────────────────────────────────────────
+function renderJournal() {
+  const good = decisions.filter(d=>d.outcome==="good").length;
+  const bad = decisions.filter(d=>d.outcome==="bad").length;
+  const rate = (good + bad) > 0 ? Math.round(good/(good+bad)*100) : 0;
+
+  const statsHtml = decisions.length ? `
+    <div class="stats-grid">
+      <div class="stat-box"><div class="stat-num">${decisions.length}</div><div class="stat-label">Decisions</div></div>
+      <div class="stat-box"><div class="stat-num" style="color:var(--green)">${good}</div><div class="stat-label">Good Outcomes</div></div>
+      <div class="stat-box"><div class="stat-num" style="color:var(--red)">${bad}</div><div class="stat-label">Poor Outcomes</div></div>
+      <div class="stat-box"><div class="stat-num">${rate}%</div><div class="stat-label">Success Rate</div></div>
+    </div>` : "";
+
+  const emptyHtml = `
+    <div class="empty">
+      <div class="empty-icon">◈</div>
+      <div class="empty-title">No decisions yet</div>
+      <div class="empty-text">Start logging decisions to build your personal intelligence over time.</div>
+      <button class="btn btn-gold" style="margin-top:18px" onclick="goTo('log')">Log Your First Decision</button>
+    </div>`;
+
+  const cardsHtml = decisions.map(d => {
+    const isExp = expanded === d.id;
+    const oe = outcomeEdits[d.id] || {};
+    const bodyHtml = isExp ? `
+      <div class="dc-body" onclick="event.stopPropagation()">
+        ${d.context ? `<div class="dc-section"><div class="dc-section-label">Context</div><div class="dc-section-text">${esc(d.context)}</div></div>` : ""}
+        ${d.options ? `<div class="dc-section"><div class="dc-section-label">Options Considered</div><div class="dc-section-text">${esc(d.options)}</div></div>` : ""}
+        ${d.chosen ? `<div class="dc-section"><div class="dc-section-label">Decision Made</div><div class="dc-section-text">${esc(d.chosen)}</div></div>` : ""}
+        ${d.reason ? `<div class="dc-section"><div class="dc-section-label">Reasoning</div><div class="dc-section-text">${esc(d.reason)}</div></div>` : ""}
+        ${d.stakes ? `<div class="dc-section"><div class="dc-section-label">Stakes</div><div class="dc-section-text">${esc(d.stakes)}</div></div>` : ""}
+        <div class="dc-section">
+          <div class="dc-section-label">Confidence — ${d.confidence}/10</div>
+          <div class="conf-bar"><div class="conf-fill" style="width:${d.confidence*10}%"></div></div>
+        </div>
+        ${d.outcomeNotes ? `<div class="dc-section"><div class="dc-section-label">Outcome Notes</div><div class="dc-section-text">${esc(d.outcomeNotes)}</div></div>` : ""}
+        <div class="outcome-form">
+          <div class="outcome-form-title">${d.outcome ? "Update Outcome" : "Record Outcome"}</div>
+          <div class="outcome-btns">
+            <button class="o-btn o-good ${(oe.outcome||d.outcome)==='good'?'sel':''}" onclick="setOutcomeEdit('${d.id}','good')">✓ Good Outcome</button>
+            <button class="o-btn o-neutral ${(oe.outcome||d.outcome)==='neutral'?'sel':''}" onclick="setOutcomeEdit('${d.id}','neutral')">~ Mixed / Neutral</button>
+            <button class="o-btn o-bad ${(oe.outcome||d.outcome)==='bad'?'sel':''}" onclick="setOutcomeEdit('${d.id}','bad')">✗ Poor Outcome</button>
+          </div>
+          <div class="field" style="margin-bottom:12px">
+            <label>Outcome Notes</label>
+            <textarea rows="2" placeholder="What actually happened? What did you learn?" oninput="setOutcomeNote('${d.id}',this.value)">${esc(oe.notes !== undefined ? oe.notes : (d.outcomeNotes||""))}</textarea>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-gold" style="font-size:12px;padding:8px 15px" onclick="saveOutcome('${d.id}')">Save Outcome</button>
+            <button class="btn btn-danger" style="font-size:12px;padding:8px 15px" onclick="deleteDecision('${d.id}')">Delete</button>
+          </div>
+        </div>
+      </div>` : "";
+
+    return `
+      <div class="decision-card ${isExp?"expanded":""}" onclick="toggleExpand('${d.id}')">
+        <div class="dc-header">
+          <div>
+            <div class="dc-title">${esc(d.title)}</div>
+            <div class="dc-meta">
+              <span class="dc-date">${fmtDate(d.date)}</span>
+              <span class="dc-tag">${esc(d.category)}</span>
+              ${d.emotion ? `<span class="dc-tag">${esc(d.emotion)}</span>` : ""}
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;flex-shrink:0">
+            ${outcomeBadge(d.outcome)}
+            <span style="color:var(--text-faint);font-size:12px">${isExp?"▲":"▼"}</span>
+          </div>
+        </div>
+        ${bodyHtml}
+      </div>`;
+  }).join("");
+
+  $("main").innerHTML = `
+    <div class="page-title">Decision Journal</div>
+    <div class="page-sub">Your complete record of decisions and their outcomes.</div>
+    ${statsHtml}
+    ${decisions.length === 0 ? emptyHtml : cardsHtml}`;
+}
+
+function toggleExpand(id) { expanded = expanded === id ? null : id; renderJournal(); }
+function setOutcomeEdit(id, val) { outcomeEdits[id] = { ...(outcomeEdits[id]||{}), outcome: val }; renderJournal(); }
+function setOutcomeNote(id, val) { outcomeEdits[id] = { ...(outcomeEdits[id]||{}), notes: val }; }
+function saveOutcome(id) {
+  const oe = outcomeEdits[id] || {};
+  const d = decisions.find(x => x.id === id);
+  if (!d) return;
+  d.outcome = oe.outcome || d.outcome;
+  d.outcomeNotes = oe.notes !== undefined ? oe.notes : d.outcomeNotes;
+  outcomeEdits[id] = {};
+  save();
+  renderJournal();
+}
+function deleteDecision(id) {
+  if (!confirm("Delete this decision? This cannot be undone.")) return;
+  decisions = decisions.filter(d => d.id !== id);
+  expanded = null;
+  save();
+  render();
+}
+
+// ─── INSIGHTS PAGE ────────────────────────────────────────────────────────────
+let analyzing = false;
+
+function renderInsights() {
+  if (decisions.length < 2) {
+    $("main").innerHTML = `
+      <div class="page-title">AI Insights</div>
+      <div class="page-sub">Discover your cognitive biases and decision patterns.</div>
+      <div class="empty">
+        <div class="empty-icon">◎</div>
+        <div class="empty-title">Need more data</div>
+        <div class="empty-text">Log at least 2 decisions before running analysis.</div>
+        <button class="btn btn-gold" style="margin-top:18px" onclick="goTo('log')">Log a Decision</button>
+      </div>`;
+    return;
+  }
+
+  const noKey = !GEMINI_API_KEY;
+
+  $("main").innerHTML = `
+    <div class="page-title">AI Insights</div>
+    <div class="page-sub">Discover your cognitive biases and decision patterns.</div>
+    ${noKey ? `<div class="setup-banner"><div class="setup-title">API Key Not Set</div><div class="setup-text">Open <code style="color:var(--gold);font-family:'DM Mono',monospace">index.html</code> in a text editor and paste your free Google Gemini key on line 1. Get a 100% free key (no credit card) at <strong>aistudio.google.com/app/apikey</strong></div></div>` : ""}
+    <div style="margin-bottom:24px">
+      <button class="btn btn-gold" onclick="runAnalysis()" ${analyzing||noKey?"disabled":""} id="analyze-btn">
+        ${analyzing ? `<span class="spinner"></span> Analyzing ${decisions.length} decisions...` : `◎ Run AI Analysis (${decisions.length} decisions)`}
+      </button>
+      ${analysis ? `<span style="margin-left:14px;font-size:12px;color:var(--text-faint)">Previous analysis shown — re-run for fresh results</span>` : ""}
+    </div>
+    <div id="analysis-output">
+      ${analysis ? renderAnalysisHtml(analysis) : `<div class="empty" style="padding-top:10px"><div class="empty-text">Click Run AI Analysis to get personalized cognitive bias detection based on your decisions.</div></div>`}
+    </div>`;
+}
+
+function renderAnalysisHtml(a) {
+  const strengthsHtml = a.strengths?.length ? `
+    <div class="card" style="margin-bottom:18px">
+      <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--green);margin-bottom:12px">Your Strengths</div>
+      ${a.strengths.map(s=>`<div class="strength-row"><span style="color:var(--green);margin-top:2px">✓</span>${esc(s)}</div>`).join("")}
+    </div>` : "";
+
+  const biasesHtml = (a.biases||[]).map(b=>`
+    <div class="bias-card">
+      <div class="bias-name">${esc(b.name)}</div>
+      <div class="bias-sev">
+        <span class="sev-label">Severity</span>
+        <div class="dots">${[1,2,3,4,5].map(n=>`<div class="dot ${n<=b.severity?"dot-on":"dot-off"}"></div>`).join("")}</div>
+      </div>
+      <div class="bias-desc">${esc(b.description)}</div>
+      ${b.tip ? `<div class="bias-tip"><div class="bias-tip-label">Coaching Tip</div>${esc(b.tip)}</div>` : ""}
+    </div>`).join("");
+
+  const recHtml = a.topRecommendation ? `
+    <div class="card card-gold" style="margin-top:6px">
+      <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);margin-bottom:10px">Top Recommendation</div>
+      <div style="font-size:13px;color:var(--text-dim);line-height:1.7">${esc(a.topRecommendation)}</div>
+    </div>` : "";
+
+  return `
+    <div class="analysis-intro">${esc(a.summary)}</div>
+    ${strengthsHtml}
+    <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--text-faint);margin-bottom:12px">Identified Cognitive Biases</div>
+    ${biasesHtml}
+    ${recHtml}`;
+}
+
+async function runAnalysis() {
+  if (!GEMINI_API_KEY || analyzing) return;
+  analyzing = true;
+  renderInsights();
+
+  const prompt = `You are an expert behavioral psychologist and decision-making coach. Analyze these decision journal entries and identify the person's cognitive biases.
+
+DECISIONS:
+${decisions.map((d,i)=>`[${i+1}] Title: ${d.title}
+Category: ${d.category} | Date: ${fmtDate(d.date)}
+Context: ${d.context}
+Options Considered: ${d.options||"Not specified"}
+Choice Made: ${d.chosen||"Not specified"}
+Reasoning: ${d.reason||"Not specified"}
+Emotional State: ${d.emotion||"Not stated"} | Confidence: ${d.confidence}/10
+Stakes: ${d.stakes||"Not stated"} | Outcome: ${d.outcome?d.outcome.toUpperCase():"Pending"}`).join("\n\n---\n\n")}
+
+Respond ONLY with a JSON object (no markdown, no backticks):
+{"summary":"2-3 sentence personalized overview","biases":[{"name":"Bias Name","severity":1,"description":"How this appears in their specific decisions","tip":"Actionable advice"}],"strengths":["strength1","strength2"],"topRecommendation":"single most important advice"}
+
+Identify 2-4 biases. Be personal and specific — reference their actual decision titles.`;
+
+  try {
+    const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0.7, maxOutputTokens: 1000 }
+      })
+    });
+    const data = await resp.json();
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+    const clean = text.replace(/```json|```/g,"").trim();
+    analysis = JSON.parse(clean);
+    localStorage.setItem("clarity_analysis", JSON.stringify(analysis));
+  } catch(e) {
+    alert("Analysis failed. Check that your API key is correct.");
+  }
+
+  analyzing = false;
+  renderInsights();
+}
+
+// ─── BOOT ─────────────────────────────────────────────────────────────────────
+render();
+</script>
+</body>
+</html>
